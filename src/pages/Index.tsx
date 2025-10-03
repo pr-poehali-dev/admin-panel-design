@@ -74,10 +74,22 @@ const mockData: Balance[] = [
   }
 ];
 
+type ColorScheme = 'blue' | 'green' | 'purple' | 'teal' | 'rose' | 'amber';
+
+const colorSchemes = {
+  blue: { gradient1: 'gradient-blue', gradient2: 'gradient-green', gradient3: 'gradient-teal', name: 'Синяя' },
+  green: { gradient1: 'gradient-green', gradient2: 'gradient-teal', gradient3: 'gradient-blue', name: 'Зелёная' },
+  purple: { gradient1: 'gradient-orange', gradient2: 'gradient-blue', gradient3: 'gradient-rose', name: 'Фиолетовая' },
+  teal: { gradient1: 'gradient-teal', gradient2: 'gradient-green', gradient3: 'gradient-blue', name: 'Бирюзовая' },
+  rose: { gradient1: 'gradient-rose', gradient2: 'gradient-orange', gradient3: 'gradient-amber', name: 'Розовая' },
+  amber: { gradient1: 'gradient-amber', gradient2: 'gradient-orange', gradient3: 'gradient-rose', name: 'Янтарная' }
+};
+
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [activeSection, setActiveSection] = useState('balances');
+  const [colorScheme, setColorScheme] = useState<ColorScheme>('blue');
 
   const menuItems = [
     { id: 'balances', label: 'Единые балансы', icon: 'Wallet' },
@@ -86,10 +98,12 @@ const Index = () => {
     { id: 'services', label: 'Оплаты заказов', icon: 'ShoppingCart' }
   ];
 
+  const currentScheme = colorSchemes[colorScheme];
+
   const stats = [
-    { label: 'Всего балансов', value: '6', icon: 'Users', gradient: 'gradient-blue' },
-    { label: 'Общая сумма', value: '46 900 ₽', icon: 'TrendingUp', gradient: 'gradient-green' },
-    { label: 'Активных', value: '5', icon: 'Activity', gradient: 'gradient-orange' },
+    { label: 'Всего балансов', value: '6', icon: 'Users', gradient: currentScheme.gradient1 },
+    { label: 'Общая сумма', value: '46 900 ₽', icon: 'TrendingUp', gradient: currentScheme.gradient2 },
+    { label: 'Активных', value: '5', icon: 'Activity', gradient: currentScheme.gradient3 },
   ];
 
   const exportToExcel = () => {
@@ -128,7 +142,7 @@ const Index = () => {
   });
 
   if (activeSection === 'transactions') {
-    return <TransactionsPage onBack={() => setActiveSection('balances')} />;
+    return <TransactionsPage onBack={() => setActiveSection('balances')} colorScheme={colorScheme} />;
   }
 
   return (
@@ -166,7 +180,21 @@ const Index = () => {
           </ul>
         </nav>
 
-        <div className="p-4 border-t border-sidebar-border">
+        <div className="p-4 border-t border-sidebar-border space-y-4">
+          <div>
+            <p className="text-xs text-sidebar-foreground/60 mb-2 px-3">Цветовая схема</p>
+            <Select value={colorScheme} onValueChange={(value) => setColorScheme(value as ColorScheme)}>
+              <SelectTrigger className="w-full bg-sidebar-accent border-sidebar-border text-sidebar-foreground">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(colorSchemes).map(([key, scheme]) => (
+                  <SelectItem key={key} value={key}>{scheme.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
           <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
               <Icon name="User" size={16} className="text-primary" />
@@ -197,14 +225,14 @@ const Index = () => {
               <Card key={index} className={`p-5 border-0 shadow-lg ${stat.gradient} text-white overflow-hidden relative`}>
                 <div className="flex items-start justify-between relative z-10">
                   <div>
-                    <p className="text-sm text-white/80 font-medium mb-2">{stat.label}</p>
+                    <p className="text-sm text-white/90 font-medium mb-2">{stat.label}</p>
                     <p className="text-3xl font-bold">{stat.value}</p>
                   </div>
-                  <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
                     <Icon name={stat.icon as any} size={22} />
                   </div>
                 </div>
-                <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+                <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/5 rounded-full blur-2xl"></div>
               </Card>
             ))}
           </div>
@@ -256,7 +284,7 @@ const Index = () => {
                     <TableCell className="font-mono font-semibold text-primary pl-6">#{item.id}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                        <div className={`w-10 h-10 rounded-full ${currentScheme.gradient1} flex items-center justify-center`}>
                           <span className="text-xs font-bold text-white">
                             {item.user.split(' ')[0][0]}{item.user.split(' ')[1][0]}
                           </span>
@@ -279,8 +307,8 @@ const Index = () => {
                       <Badge 
                         variant="secondary" 
                         className={item.status === 'active' 
-                          ? 'bg-green-100 text-green-700 hover:bg-green-100' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-100'}
+                          ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-100' 
+                          : 'bg-slate-100 text-slate-700 hover:bg-slate-100'}
                       >
                         {item.status === 'active' ? 'Активен' : 'Неактивен'}
                       </Badge>
@@ -296,8 +324,9 @@ const Index = () => {
   );
 };
 
-const TransactionsPage = ({ onBack }: { onBack: () => void }) => {
+const TransactionsPage = ({ onBack, colorScheme }: { onBack: () => void; colorScheme: ColorScheme }) => {
   const [activeTab, setActiveTab] = useState('pending');
+  const currentScheme = colorSchemes[colorScheme];
 
   const tabs = [
     { id: 'pending', label: 'Ожидают обработки', count: 12 },
@@ -384,7 +413,7 @@ const TransactionsPage = ({ onBack }: { onBack: () => void }) => {
             <div className="grid grid-cols-2 gap-6">
               <Card className="p-6 border-0 shadow-md">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl gradient-blue flex items-center justify-center text-white">
+                  <div className={`w-12 h-12 rounded-xl ${currentScheme.gradient1} flex items-center justify-center text-white`}>
                     <Icon name="Clock" size={24} />
                   </div>
                   <div className="flex-1">
@@ -408,7 +437,7 @@ const TransactionsPage = ({ onBack }: { onBack: () => void }) => {
 
               <Card className="p-6 border-0 shadow-md">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl gradient-green flex items-center justify-center text-white">
+                  <div className={`w-12 h-12 rounded-xl ${currentScheme.gradient2} flex items-center justify-center text-white`}>
                     <Icon name="TrendingUp" size={24} />
                   </div>
                   <div className="flex-1">
@@ -432,7 +461,7 @@ const TransactionsPage = ({ onBack }: { onBack: () => void }) => {
 
               <Card className="p-6 border-0 shadow-md">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-xl gradient-orange flex items-center justify-center text-white">
+                  <div className={`w-12 h-12 rounded-xl ${currentScheme.gradient3} flex items-center justify-center text-white`}>
                     <Icon name="CreditCard" size={24} />
                   </div>
                   <div className="flex-1">
@@ -443,15 +472,15 @@ const TransactionsPage = ({ onBack }: { onBack: () => void }) => {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-sm">Банковская карта</span>
-                        <Badge variant="secondary" className="bg-green-100 text-green-700">Активен</Badge>
+                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">Активен</Badge>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm">СБП</span>
-                        <Badge variant="secondary" className="bg-green-100 text-green-700">Активен</Badge>
+                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">Активен</Badge>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm">Электронные кошельки</span>
-                        <Badge variant="secondary" className="bg-gray-100 text-gray-700">Недоступен</Badge>
+                        <Badge variant="secondary" className="bg-slate-100 text-slate-700">Недоступен</Badge>
                       </div>
                     </div>
                   </div>
@@ -470,11 +499,11 @@ const TransactionsPage = ({ onBack }: { onBack: () => void }) => {
                     </p>
                     <div className="space-y-1 text-sm">
                       <p className="flex items-center gap-2">
-                        <Icon name="Check" size={16} className="text-green-600" />
+                        <Icon name="Check" size={16} className="text-emerald-600" />
                         <span>Мгновенное зачисление для СБП</span>
                       </p>
                       <p className="flex items-center gap-2">
-                        <Icon name="Check" size={16} className="text-green-600" />
+                        <Icon name="Check" size={16} className="text-emerald-600" />
                         <span>Защищённые платежи</span>
                       </p>
                     </div>
@@ -506,7 +535,7 @@ const TransactionsPage = ({ onBack }: { onBack: () => void }) => {
                       <TableCell className="font-mono font-semibold text-primary pl-6">#{item.id}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
+                          <div className={`w-8 h-8 rounded-full ${currentScheme.gradient1} flex items-center justify-center`}>
                             <span className="text-xs font-bold text-white">
                               {item.user.split(' ')[0][0]}{item.user.split(' ')[1][0]}
                             </span>
@@ -519,7 +548,7 @@ const TransactionsPage = ({ onBack }: { onBack: () => void }) => {
                       </TableCell>
                       <TableCell className="text-muted-foreground">{item.date}</TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                        <Badge variant="secondary" className="bg-sky-100 text-sky-700">
                           {item.method}
                         </Badge>
                       </TableCell>
